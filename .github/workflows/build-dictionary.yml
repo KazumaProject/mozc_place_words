@@ -1,5 +1,9 @@
 name: Build Dictionary
 
+# GITHUB_TOKEN にリリース作成権限を付与
+permissions:
+  contents: write
+
 on:
   push:
     tags:
@@ -22,6 +26,10 @@ jobs:
         run: |
           curl -L -o places.tsv https://raw.githubusercontent.com/google/mozc/master/src/data/dictionary_manual/places.tsv
           curl -L -o words.tsv  https://raw.githubusercontent.com/google/mozc/master/src/data/dictionary_manual/words.tsv
+
+      - name: Install dependencies (if any)
+        run: |
+          pip install --upgrade pip
 
       - name: Run dictionary generator
         run: |
