@@ -1,0 +1,50 @@
+name: Build Dictionary
+
+on:
+  push:
+    tags:
+      - "v*.*.*"  # 例: v1.0.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Download TSV files
+        run: |
+          curl -L -o places.tsv https://raw.githubusercontent.com/google/mozc/master/src/data/dictionary_manual/places.tsv
+          curl -L -o words.tsv  https://raw.githubusercontent.com/google/mozc/master/src/data/dictionary_manual/words.tsv
+
+      - name: Run dictionary generator
+        run: |
+          python scripts/generate_dictionary_entries.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dictionary_output
+          path: dictionary_output.kt
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dictionary_output
+          path: ./output
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./output/dictionary_output.kt
